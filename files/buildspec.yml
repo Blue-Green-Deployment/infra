@@ -1,0 +1,34 @@
+# Build & push image, then emit taskdef/appspec for CodeDeploy ECS blue/green
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      - aws --version
+      - aws ecr get-login-password | docker login --username AWS --password-stdin "$ECR_REPO".split('/')[0]
+      - COMMIT_SHA=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
+      - IMAGE_URI=${ECR_REPO}:${COMMIT_SHA}
+  build:
+    commands:
+      - echo "Build started on $(date)"
+      - docker build -t ${IMAGE_URI} .
+      - docker push ${IMAGE_URI}
+  post_build:
+    commands:
+      - echo "Rendering taskdef.json and appspec.json"
+      - printf '{"family":"%s","networkMode":"awsvpc","executionRoleArn":"%s","requiresCompatibilities":["FARGATE"],"cpu":"%s","memory":"%s","containerDefinitions":[{"name":"app","image":"%s","essential":true,"portMappings":[{"containerPort":%s,"hostPort":%s,"protocol":"tcp"}]}]}' "$PROJECT_NAME" "$(aws iam get-role --role-name ${PROJECT_NAME}-ecsTaskExecutionRole --query 'Role.Arn' --output text)" "$CPU" "$MEMORY" "$IMAGE_URI" "$CONTAINER_PORT" "$CONTAINER_PORT" > taskdef.json
+      - printf 'version: 1
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: "<TASK_DEFINITION>"
+        LoadBalancerInfo:
+          ContainerName: "app"
+          ContainerPort: %s
+' "$CONTAINER_PORT" > appspec.json
+artifacts:
+  files:
+    - taskdef.json
+    - appspec.json
