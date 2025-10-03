@@ -19,21 +19,21 @@ resource "aws_codebuild_project" "app" {
       name  = "ECR_REPO"
       value = aws_ecr_repository.app.repository_url
     }
-    environment_variable { 
-      name = "CONTAINER_PORT" 
-      value = tostring(var.container_port) 
+    environment_variable {
+      name  = "CONTAINER_PORT"
+      value = tostring(var.container_port)
     }
-    environment_variable { 
-      name  = "CPU" 
-      value = tostring(var.cpu) 
+    environment_variable {
+      name  = "CPU"
+      value = tostring(var.cpu)
     }
-    environment_variable { 
-      name  = "MEMORY" 
-      value = tostring(var.memory) 
+    environment_variable {
+      name  = "MEMORY"
+      value = tostring(var.memory)
     }
-    environment_variable { 
-      name  = "PROJECT_NAME" 
-      value = var.project_name 
+    environment_variable {
+      name  = "PROJECT_NAME"
+      value = var.project_name
     }
 
     #### Sonar variables ####
@@ -58,5 +58,5 @@ resource "aws_codebuild_project" "app" {
     }
   }
 
-  
+
 }

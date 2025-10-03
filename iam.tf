@@ -42,9 +42,9 @@ resource "aws_iam_role_policy" "codebuild_inline" {
     Version = "2012-10-17",
     Statement = [
       { Effect = "Allow", Action = ["ecr:GetAuthorizationToken"], Resource = "*" },
-      { Effect = "Allow", Action = ["ecr:BatchCheckLayerAvailability","ecr:CompleteLayerUpload","ecr:UploadLayerPart","ecr:InitiateLayerUpload","ecr:PutImage","ecr:BatchGetImage","ecr:DescribeRepositories"], Resource = aws_ecr_repository.app.arn },
-      { Effect = "Allow", Action = ["logs:CreateLogGroup","logs:CreateLogStream","logs:PutLogEvents"], Resource = "*" },
-      { Effect = "Allow", Action = ["ssm:GetParameter","ssm:GetParameters"], Resource = "*" }
+      { Effect = "Allow", Action = ["ecr:BatchCheckLayerAvailability", "ecr:CompleteLayerUpload", "ecr:UploadLayerPart", "ecr:InitiateLayerUpload", "ecr:PutImage", "ecr:BatchGetImage", "ecr:DescribeRepositories"], Resource = aws_ecr_repository.app.arn },
+      { Effect = "Allow", Action = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"], Resource = "*" },
+      { Effect = "Allow", Action = ["ssm:GetParameter", "ssm:GetParameters"], Resource = "*" }
     ]
   })
 }
@@ -71,8 +71,8 @@ resource "aws_iam_role_policy" "codepipeline_inline" {
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
-      { Effect = "Allow", Action = ["codebuild:BatchGetBuilds","codebuild:StartBuild"], Resource = "*" },
-      { Effect = "Allow", Action = ["codedeploy:CreateDeployment","codedeploy:Get*","codedeploy:List*"], Resource = "*" },
+      { Effect = "Allow", Action = ["codebuild:BatchGetBuilds", "codebuild:StartBuild"], Resource = "*" },
+      { Effect = "Allow", Action = ["codedeploy:CreateDeployment", "codedeploy:Get*", "codedeploy:List*"], Resource = "*" },
       { Effect = "Allow", Action = ["iam:PassRole"], Resource = "*" },
       { Effect = "Allow", Action = ["s3:*"], Resource = "*" },
       { Effect = "Allow", Action = ["codestar-connections:UseConnection"], Resource = "*" }

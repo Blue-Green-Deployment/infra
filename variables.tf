@@ -33,12 +33,12 @@ variable "private_subnet_cidrs" {
 #######################################
 
 variable "github_owner" {
-  type = string
+  type    = string
   default = "shttps://github.com/Blue-Green-Deployment"
 }
 
 variable "github_repo" {
-  type = string
+  type    = string
   default = "https://github.com/Blue-Green-Deployment/app.git"
 }
 
