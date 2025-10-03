@@ -1,3 +1,8 @@
+resource "aws_cloudwatch_log_group" "codebuild" {
+  name              = "/codebuild/${var.project_name}"
+  retention_in_days = 30
+}
+
 resource "aws_codebuild_project" "app" {
   name          = "${var.project_name}-build"
   service_role  = aws_iam_role.codebuild.arn
@@ -54,7 +59,7 @@ resource "aws_codebuild_project" "app" {
   }
   logs_config {
     cloudwatch_logs {
-      group_name = "/codebuild/${var.project_name}"
+      group_name = aws_cloudwatch_log_group.codebuild.name
     }
   }
 

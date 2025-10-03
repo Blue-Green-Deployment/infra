@@ -34,12 +34,12 @@ variable "private_subnet_cidrs" {
 
 variable "github_owner" {
   type    = string
-  default = "shttps://github.com/Blue-Green-Deployment"
+  default = "Blue-Green-Deployment"
 }
 
 variable "github_repo" {
   type    = string
-  default = "https://github.com/Blue-Green-Deployment/app.git"
+  default = "app"
 }
 
 variable "github_branch" {
