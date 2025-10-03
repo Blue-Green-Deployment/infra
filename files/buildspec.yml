@@ -1,33 +1,50 @@
-# Build & push image, then emit taskdef/appspec for CodeDeploy ECS blue/green
 version: 0.2
 
 phases:
+  install:
+    commands:
+      - echo "Installing Sonar Scanner CLI..."
+      - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-5.0.1.3006-linux.zip
+      - unzip -q sonar-scanner.zip
+      - export SONAR_SCANNER_HOME="$PWD/sonar-scanner-5.0.1.3006-linux"
+      - export PATH="$SONAR_SCANNER_HOME/bin:$PATH"
+      - echo "Ensuring Node is available (CodeBuild standard image already includes Node)"
+      - node --version
+      - npm --version
+
   pre_build:
     commands:
       - echo "Logging in to Amazon ECR..."
       - aws --version
-      - aws ecr get-login-password | docker login --username AWS --password-stdin "$ECR_REPO".split('/')[0]
+      - aws ecr get-login-password | docker login --username AWS --password-stdin "$(echo $ECR_REPO | cut -d'/' -f1)"
       - COMMIT_SHA=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
       - IMAGE_URI=${ECR_REPO}:${COMMIT_SHA}
+
+      # Install dependencies and run tests to generate coverage for Sonar
+      - echo "Installing dependencies for app (npm ci) and running tests with coverage"
+      - npm ci
+      - CI=true npm test -- --coverage --watchAll=false || true  # no falles si no hay tests aún
+
   build:
     commands:
-      - echo "Build started on $(date)"
+      - echo "Building Docker image ${IMAGE_URI}"
       - docker build -t ${IMAGE_URI} .
       - docker push ${IMAGE_URI}
+
+      # Sonar analysis (analyzes the source pulled by CodePipeline)
+      - echo "Running Sonar Scanner for JS"
+      - sonar-scanner \
+          -Dsonar.host.url="${SONAR_HOST_URL}" \
+          -Dsonar.login="${SONAR_TOKEN}" \
+          -Dsonar.projectKey="${SONAR_PROJECT_KEY}"
+
   post_build:
     commands:
       - echo "Rendering taskdef.json and appspec.json"
-      - printf '{"family":"%s","networkMode":"awsvpc","executionRoleArn":"%s","requiresCompatibilities":["FARGATE"],"cpu":"%s","memory":"%s","containerDefinitions":[{"name":"app","image":"%s","essential":true,"portMappings":[{"containerPort":%s,"hostPort":%s,"protocol":"tcp"}]}]}' "$PROJECT_NAME" "$(aws iam get-role --role-name ${PROJECT_NAME}-ecsTaskExecutionRole --query 'Role.Arn' --output text)" "$CPU" "$MEMORY" "$IMAGE_URI" "$CONTAINER_PORT" "$CONTAINER_PORT" > taskdef.json
-      - printf 'version: 1
-Resources:
-  - TargetService:
-      Type: AWS::ECS::Service
-      Properties:
-        TaskDefinition: "<TASK_DEFINITION>"
-        LoadBalancerInfo:
-          ContainerName: "app"
-          ContainerPort: %s
-' "$CONTAINER_PORT" > appspec.json
+      - printf '{"family":"%s","networkMode":"awsvpc","executionRoleArn":"%s","requiresCompatibilities":["FARGATE"],"cpu":"%s","memory":"%s","containerDefinitions":[{"name":"app","image":"%s","essential":true,"portMappings":[{"containerPort":%s,"hostPort":%s,"protocol":"tcp"}]}]}' \
+          "$PROJECT_NAME" "$(aws iam get-role --role-name ${PROJECT_NAME}-ecsTaskExecutionRole --query 'Role.Arn' --output text)" "$CPU" "$MEMORY" "$IMAGE_URI" "$CONTAINER_PORT" "$CONTAINER_PORT" > taskdef.json
+      - printf 'version: 1\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: "<TASK_DEFINITION>"\n        LoadBalancerInfo:\n          ContainerName: "app"\n          ContainerPort: %s\n' "$CONTAINER_PORT" > appspec.json
+
 artifacts:
   files:
     - taskdef.json

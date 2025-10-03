@@ -34,10 +34,12 @@ variable "private_subnet_cidrs" {
 
 variable "github_owner" {
   type = string
+  default = "shttps://github.com/Blue-Green-Deployment"
 }
 
 variable "github_repo" {
   type = string
+  default = "https://github.com/Blue-Green-Deployment/app.git"
 }
 
 variable "github_branch" {
@@ -69,16 +71,16 @@ variable "memory" {
 }
 
 #################################
-#### Optional Sonar settings ####
+#### Sonar settings ####
 #################################
 
 variable "sonar_host_url" {
   type    = string
-  default = ""
+  default = "https://sonarcloud.io"
 }
 variable "sonar_project_key" {
   type    = string
-  default = ""
+  default = "swiggy-clone"
 }
 variable "ssm_sonar_token_parameter" {
   type    = string

@@ -14,6 +14,7 @@ resource "aws_codebuild_project" "app" {
     image           = "aws/codebuild/standard:7.0"
     type            = "LINUX_CONTAINER"
     privileged_mode = true
+
     environment_variable {
       name  = "ECR_REPO"
       value = aws_ecr_repository.app.repository_url
@@ -34,10 +35,28 @@ resource "aws_codebuild_project" "app" {
       name  = "PROJECT_NAME" 
       value = var.project_name 
     }
+
+    #### Sonar variables ####
+    #########################  
+    environment_variable {
+      name  = "SONAR_HOST_URL"
+      value = var.sonar_host_url
+    }
+    environment_variable {
+      name  = "SONAR_PROJECT_KEY"
+      value = var.sonar_project_key
+    }
+    environment_variable {
+      name  = "SONAR_TOKEN"
+      type  = "PARAMETER_STORE"
+      value = var.ssm_sonar_token_parameter
+    }
   }
   logs_config {
     cloudwatch_logs {
       group_name = "/codebuild/${var.project_name}"
     }
   }
+
+  
 }
