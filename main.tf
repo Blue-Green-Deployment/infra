@@ -15,4 +15,4 @@ data "aws_region" "current" {}
 
 # Example: expose current account/region as outputs for quick checks
 output "account_id" { value = data.aws_caller_identity.current.account_id }
-output "aws_region_name" { value = data.aws_region.current.name }
+output "aws_region_name" { value = data.aws_region.current.id }
