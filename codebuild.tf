@@ -13,8 +13,8 @@ resource "aws_codebuild_project" "app" {
   build_timeout = 30
 
   source {
-    type      = "CODEPIPELINE"
-    buildspec = file("${path.module}/files/buildspec.yml")
+    type = "CODEPIPELINE"
+    #buildspec = file("${path.module}/files/buildspec.yml")
   }
   artifacts { type = "CODEPIPELINE" }
 

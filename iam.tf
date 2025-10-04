@@ -93,6 +93,35 @@ resource "aws_iam_role_policy" "codebuild_inline" {
   })
 }
 
+# Allow CodeBuild to read from the artifact S3 bucket
+resource "aws_iam_policy" "codebuild_s3_access" {
+  name        = "${var.project_name}-codebuild-s3-access"
+  description = "Allow CodeBuild to read from artifact bucket"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject",
+          "s3:GetObjectVersion",
+          "s3:GetBucketLocation",
+          "s3:ListBucket"
+        ],
+        Resource = [
+          aws_s3_bucket.artifacts.arn,
+          "${aws_s3_bucket.artifacts.arn}/*"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "attach_codebuild_s3" {
+  role       = aws_iam_role.codebuild.name
+  policy_arn = aws_iam_policy.codebuild_s3_access.arn
+}
+
 # CodePipeline
 data "aws_iam_policy_document" "codepipeline_assume" {
   statement {
@@ -239,4 +268,54 @@ resource "aws_iam_role_policy" "codedeploy_inline" {
       }
     ]
   })
+}
+
+
+variable "artifact_bucket_name" {
+  type    = string
+  default = "swiggy-clone-artifacts-d83f" # <- cámbialo si aplica
+}
+
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_policy_document" "codebuild_s3_artifacts" {
+  # Bucket-level permissions (list, location)
+  statement {
+    sid = "S3BucketMetadata"
+    actions = [
+      "s3:ListBucket",
+      "s3:GetBucketLocation",
+      "s3:ListBucketMultipartUploads"
+    ]
+    resources = [
+      "arn:aws:s3:::${var.artifact_bucket_name}"
+    ]
+  }
+
+  # Object-level permissions (write/read artifacts)
+  statement {
+    sid = "S3ObjectRW"
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:GetObjectVersion",
+      "s3:AbortMultipartUpload",
+      "s3:ListMultipartUploadParts",
+      "s3:DeleteObject" # opcional, por si necesitas limpiar
+      # "s3:PutObjectAcl" # solo si el bucket requiere ACLs explícitas
+    ]
+    resources = [
+      "arn:aws:s3:::${var.artifact_bucket_name}/*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "codebuild_s3_artifacts" {
+  name   = "${var.project_name}-codebuild-s3-artifacts"
+  policy = data.aws_iam_policy_document.codebuild_s3_artifacts.json
+}
+
+resource "aws_iam_role_policy_attachment" "codebuild_s3_artifacts_attach" {
+  role       = aws_iam_role.codebuild.name
+  policy_arn = aws_iam_policy.codebuild_s3_artifacts.arn
 }

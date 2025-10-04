@@ -5,10 +5,10 @@
       "TargetService": {
         "Type": "AWS::ECS::Service",
         "Properties": {
-          "TaskDefinition": "<TASK_DEFINITION>",
+          "TaskDefinition": "<arn:aws:ecs:us-east-1:014498617914:task-definition/swiggy-clone:1>",
           "LoadBalancerInfo": {
             "ContainerName": "app",
-            "ContainerPort": 8080
+            "ContainerPort": 3000
           }
         }
       }

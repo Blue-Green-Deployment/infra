@@ -95,12 +95,12 @@ resource "aws_codepipeline" "this" {
       input_artifacts = ["build_output"]
       version         = "1"
       configuration = {
-        ApplicationName                = aws_codedeploy_app.ecs.name
-        DeploymentGroupName            = aws_codedeploy_deployment_group.ecs.deployment_group_name
-       # TaskDefinitionTemplateArtifact = "build_output"
-       # TaskDefinitionTemplatePath     = "taskdef.json"
-       # AppSpecTemplateArtifact        = "build_output"
-       # AppSpecTemplateFile            = "appspec.json"
+        ApplicationName     = aws_codedeploy_app.ecs.name
+        DeploymentGroupName = aws_codedeploy_deployment_group.ecs.deployment_group_name
+        # TaskDefinitionTemplateArtifact = "build_output"
+        # TaskDefinitionTemplatePath     = "taskdef.json"
+        # AppSpecTemplateArtifact        = "build_output"
+        # AppSpecTemplateFile            = "appspec.json"
       }
     }
   }

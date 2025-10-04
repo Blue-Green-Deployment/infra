@@ -10,7 +10,9 @@
 # }
 #
 # Helper data sources (useful for debugging and tagging)
-data "aws_caller_identity" "current" {}
+
+#data "aws_caller_identity" "current" {}
+
 data "aws_region" "current" {}
 
 # Example: expose current account/region as outputs for quick checks
