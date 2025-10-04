@@ -1,6 +1,10 @@
 resource "aws_cloudwatch_log_group" "codebuild" {
   name              = "/codebuild/${var.project_name}"
   retention_in_days = 30
+
+  tags = merge(local.common_tags, {
+    Name = "/codebuild/${var.project_name}"
+  })
 }
 
 resource "aws_codebuild_project" "app" {
@@ -63,5 +67,7 @@ resource "aws_codebuild_project" "app" {
     }
   }
 
-
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-build"
+  })
 }

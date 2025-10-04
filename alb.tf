@@ -16,21 +16,23 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Project = var.project_name
-    Role    = "alb"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-alb-sg"
+    Role = "alb"
+  })
 }
 
 resource "aws_lb" "app_alb" {
-  name               = "${var.project_name}-alb"
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = [for s in aws_subnet.public : s.id]
+  name                       = "${var.project_name}-alb"
+  load_balancer_type         = "application"
+  security_groups            = [aws_security_group.alb.id]
+  subnets                    = [for s in aws_subnet.public : s.id]
+  drop_invalid_header_fields = true
+  idle_timeout               = 60
 
-  tags = {
-    Project = var.project_name
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-alb"
+  })
 }
 
 resource "aws_lb_target_group" "blue" {
@@ -44,12 +46,15 @@ resource "aws_lb_target_group" "blue" {
     matcher             = "200-399"
     healthy_threshold   = 3
     unhealthy_threshold = 3
+    interval            = 30
+    timeout             = 5
   }
+  deregistration_delay = 30
 
-  tags = {
-    Project = var.project_name
-    Slot    = "blue"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-tg-blue"
+    Slot = "blue"
+  })
 }
 
 resource "aws_lb_target_group" "green" {
@@ -63,12 +68,15 @@ resource "aws_lb_target_group" "green" {
     matcher             = "200-399"
     healthy_threshold   = 3
     unhealthy_threshold = 3
+    interval            = 30
+    timeout             = 5
   }
+  deregistration_delay = 30
 
-  tags = {
-    Project = var.project_name
-    Slot    = "green"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-tg-green"
+    Slot = "green"
+  })
 }
 
 resource "aws_lb_listener" "http" {
@@ -100,17 +108,17 @@ resource "aws_security_group" "service" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Project = var.project_name
-    Role    = "service"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-svc-sg"
+    Role = "service"
+  })
 }
 
 resource "aws_ecs_service" "app" {
   name            = "${var.project_name}-service"
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = 1
+  desired_count   = var.desired_count
   launch_type     = "FARGATE"
   network_configuration {
     assign_public_ip = false
@@ -123,7 +131,13 @@ resource "aws_ecs_service" "app" {
     container_port   = var.container_port
   }
   deployment_controller { type = "CODE_DEPLOY" }
-  lifecycle { ignore_changes = [task_definition] }
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
 
   depends_on = [aws_lb_listener.http]
+
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-service"
+  })
 }

@@ -70,6 +70,12 @@ variable "memory" {
   default = 512
 }
 
+variable "desired_count" {
+  description = "Number of ECS tasks to run"
+  type        = number
+  default     = 0
+}
+
 #################################
 #### Sonar settings ####
 #################################
@@ -85,4 +91,10 @@ variable "sonar_project_key" {
 variable "ssm_sonar_token_parameter" {
   type    = string
   default = "/cicd/sonar/sonar-token"
+}
+
+variable "tags" {
+  description = "Additional tags to apply to all resources"
+  type        = map(string)
+  default     = {}
 }

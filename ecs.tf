@@ -7,9 +7,9 @@ resource "aws_ecs_cluster" "this" {
     value = "enabled"
   }
 
-  tags = {
-    Project = var.project_name
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-cluster"
+  })
 }
 
 # Associate capacity providers to the cluster (Fargate On-Demand + Spot)
@@ -33,6 +33,10 @@ resource "aws_ecs_cluster_capacity_providers" "this" {
 resource "aws_cloudwatch_log_group" "app" {
   name              = "/ecs/${var.project_name}"
   retention_in_days = 14
+
+  tags = merge(local.common_tags, {
+    Name = "/ecs/${var.project_name}"
+  })
 }
 
 resource "aws_ecs_task_definition" "app" {
