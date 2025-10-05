@@ -91,7 +91,7 @@ resource "aws_codepipeline" "this" {
       name            = "Deploy"
       category        = "Deploy"
       owner           = "AWS"
-      provider        = "CodeDeploy"
+      provider        = "CodeDeployToECS"
       input_artifacts = ["build_output"]
       version         = "1"
       configuration = {
@@ -100,7 +100,7 @@ resource "aws_codepipeline" "this" {
         TaskDefinitionTemplateArtifact = "build_output"
         TaskDefinitionTemplatePath     = "taskdef.json"
         AppSpecTemplateArtifact        = "build_output"
-        AppSpecTemplateFile            = "appspec.yaml"
+        AppSpecTemplatePath            = "appspec.yaml"
       }
     }
   }

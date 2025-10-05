@@ -253,6 +253,27 @@ resource "aws_iam_role_policy" "codepipeline_inline" {
         ]
       },
 
+      # ECS - allow CodePipeline to register task definitions
+      {
+        Effect  = "Allow",
+        Action  = ["ecs:RegisterTaskDefinition"],
+        Resource = "*"
+        # Alternatively, restrict to the task definition family ARN:
+        # Resource = format(
+        #   "arn:aws:ecs:%s:%s:task-definition/%s:*",
+        #   var.region,
+        #   data.aws_caller_identity.current.account_id,
+        #   var.project_name,
+        # )
+      },
+
+      # Allow passing ECS task execution role referenced in taskdef.json
+      {
+        Effect  = "Allow",
+        Action  = ["iam:PassRole"],
+        Resource = aws_iam_role.ecs_task_exec.arn
+      },
+
       # S3 artifacts (pipeline bucket) - list and object R/W
       {
         Effect   = "Allow",
