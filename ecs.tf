@@ -49,7 +49,7 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([
     {
-      name      = "app"
+      name      = "swiggy"
       image     = "${aws_ecr_repository.app.repository_url}:latest"
       essential = true
       portMappings = [{

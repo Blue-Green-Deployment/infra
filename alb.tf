@@ -127,7 +127,7 @@ resource "aws_ecs_service" "app" {
   }
   load_balancer {
     target_group_arn = aws_lb_target_group.blue.arn
-    container_name   = "app"
+    container_name   = "swiggy"
     container_port   = var.container_port
   }
   deployment_controller { type = "CODE_DEPLOY" }

@@ -58,7 +58,7 @@ variable "codestar_connection_name" {
 
 variable "container_port" {
   type    = number
-  default = 8080
+  default = 3000
 }
 
 variable "cpu" {
@@ -73,7 +73,7 @@ variable "memory" {
 variable "desired_count" {
   description = "Number of ECS tasks to run"
   type        = number
-  default     = 0
+  default     = 1
 }
 
 #################################
